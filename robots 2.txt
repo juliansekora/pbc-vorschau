@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /verwaltung/
+Disallow: /danke/
+
+Sitemap: https://www.p-b-c.biz/sitemap.xml
