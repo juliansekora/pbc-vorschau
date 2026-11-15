@@ -1,10 +1,52 @@
 <!DOCTYPE html><html lang="de"> <head><meta name="robots" content="noindex, nofollow"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><script>
+      /* Beim Aktualisieren immer ganz oben starten. Der Browser stellt die Position nicht selbst wieder her (manual);
+         nur bei Zurück/Vor setzen wir die gemerkte Position wieder ein. */
+      (function () {
+        try { history.scrollRestoration = 'manual'; } catch (e) { return; }
+        var nav = performance.getEntriesByType ? performance.getEntriesByType('navigation')[0] : null;
+        var schluessel = 'pbc-pos:' + location.pathname + location.search;
+        window.addEventListener('pagehide', function () {
+          try { sessionStorage.setItem(schluessel, String(Math.round(window.scrollY))); } catch (e) {}
+        });
+        if (location.hash) {
+          /* Sprungmarke (z. B. /datenschutz/#cookies) sicher anspringen */
+          window.addEventListener('load', function () {
+            var ziel = null;
+            try { ziel = document.getElementById(decodeURIComponent(location.hash.slice(1))); } catch (e) {}
+            if (!ziel) return;
+            var h = document.documentElement, alt = h.style.scrollBehavior;
+            h.style.scrollBehavior = 'auto';
+            ziel.scrollIntoView({ block: 'start' });
+            h.style.scrollBehavior = alt;
+          });
+          return;
+        }
+        if (!nav || nav.type !== 'back_forward') return;
+        var y = 0;
+        try { y = parseInt(sessionStorage.getItem(schluessel) || '0', 10) || 0; } catch (e) {}
+        if (!y) return;
+        window.addEventListener('load', function () {
+          var h = document.documentElement, alt = h.style.scrollBehavior;
+          h.style.scrollBehavior = 'auto';
+          window.scrollTo(0, y);
+          h.style.scrollBehavior = alt;
+        });
+      })();
+    </script><script>
         /* Landingpage: beim Neuladen immer oben starten; Sprungmarken (#anfrage-start …) nicht in die Adresse schreiben,
            sonst springt Safari nach dem Aktualisieren direkt zum Formular. */
         (function () {
           try { history.scrollRestoration = 'manual'; } catch (e) {}
           if (location.hash) history.replaceState(null, '', location.pathname + location.search);
-          window.scrollTo(0, 0);
+          var oben = function () {
+            var h = document.documentElement, alt = h.style.scrollBehavior;
+            h.style.scrollBehavior = 'auto';
+            window.scrollTo(0, 0);
+            h.style.scrollBehavior = alt;
+          };
+          oben();
+          document.addEventListener('DOMContentLoaded', oben);
+          window.addEventListener('load', oben);
           document.addEventListener('click', function (e) {
             var a = e.target instanceof Element ? e.target.closest('a[href^="#"]:not(.skip)') : null;
             if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey) return;
