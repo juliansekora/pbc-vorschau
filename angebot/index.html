@@ -191,7 +191,9 @@ const themaFest = "";
         if (ort) {
           document.querySelectorAll('[data-ort]').forEach(function (el) {
             var alt = el.textContent;
-            el.textContent = el.getAttribute('data-ort').replace('{ort}', ort);
+            // Wie Googles Ort-Variable: passt der Ort nicht in den Anzeigentitel, steht dort der Ersatztext (z. B. „SH“)
+            var max = +el.getAttribute('data-ort-max');
+            el.textContent = el.getAttribute('data-ort').replace('{ort}', max && ort.length > max ? el.getAttribute('data-ort-ersatz') : ort);
             // Überschrift: höchstens 3 Zeilen (Julian 21.11.2026). Macht ein langer Ortsname eine 4. Zeile, bleibt der bisherige Ort stehen.
             var h = el.closest ? el.closest('h1') : null;
             if (h && zeilen(h) > 3) el.textContent = alt;
